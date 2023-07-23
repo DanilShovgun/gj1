@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import Http404
 
 DATA = {
     'omlet': {
@@ -28,3 +29,11 @@ DATA = {
 #     'ингредиент2': количество2,
 #   }
 # }
+def recipe_view(request, dish):
+    try:
+        recipe = DATA[dish]
+    except KeyError:
+        raise Http404("Рецепт не найден")
+
+    context = {'recipe': recipe}
+    return render(request, 'calculator/index.html', context)

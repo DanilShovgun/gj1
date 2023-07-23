@@ -18,4 +18,5 @@ from django.urls import path
 
 urlpatterns = [
     # здесь зарегистрируйте вашу view-функцию
+    path('<str:dish>/', views.recipe_view)
 ]
