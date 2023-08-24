@@ -13,5 +13,12 @@ class Command(BaseCommand):
             phones = list(csv.DictReader(file, delimiter=';'))
 
         for phone in phones:
-            # TODO: Добавьте сохранение модели
-            pass
+            phone = Phone(
+                    id=phone[0],
+                    name=phone[1],
+                    image=phone[2],
+                    price=phone[3],
+                    release_date=phone[4],
+                    lte_exists=phone[5]
+                )
+            phone.save()
