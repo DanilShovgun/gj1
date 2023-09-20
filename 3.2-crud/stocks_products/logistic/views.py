@@ -1,21 +1,17 @@
-from rest_framework.viewsets import ModelViewSet
+from rest_framework import viewsets 
+from .serializers import ProductSerializer, WarehouseSerializer
+from .models import Product, Warehouse
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
-from logistic.models import Product, Stock
-from logistic.serializers import ProductSerializer, StockSerializer
-
-
-class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.all()
+class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
-    # при необходимости добавьте параметры фильтрации
+    queryset = Product.objects.all()
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'description']
 
-
-class StockViewSet(ModelViewSet):
-    queryset = Stock.objects.all()
-    serializer_class = StockSerializer
-    # при необходимости добавьте параметры фильтрации
-
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-}
+class WarehouseViewSet(viewsets.ModelViewSet):
+    serializer_class = WarehouseSerializer
+    queryset = Warehouse.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['products__id']
