@@ -2,16 +2,8 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from rest_framework import viewsets
-from .models import Product, Warehouse
-from .serializers import ProductSerializer, WarehouseSerializer
-
-class ProductViewSet(viewsets.ModelViewSet):  
-    queryset = Product.objects.all()  
-    serializer_class = ProductSerializer
-
-class WarehouseViewSet(viewsets.ModelViewSet):  
-    queryset = Warehouse.objects.all()  
-    serializer_class = WarehouseSerializer
+from .models import Product, Stock, StockProduct
+from .serializers import ProductSerializer, StockSerializer
 
 class Product(models.Model):
     title = models.CharField(max_length=60, unique=True)
@@ -44,3 +36,19 @@ class StockProduct(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)],
     )
+
+class StockViewSet(viewsets.ModelViewSet):  
+    queryset = Stock.objects.all()  
+    serializer_class = StockSerializer
+
+    def update(self, instance, validated_data):
+        positions = validated_data.pop('positions')
+        stock = super().update(instance, validated_data)
+        for position in positions:
+            StockProduct.objects.update_or_create(
+                stock=position['stock'],
+                product=position['product'],
+                defaults={'price': position['price'],
+                          'quantity': position['quantity']}
+            )
+        return stock
