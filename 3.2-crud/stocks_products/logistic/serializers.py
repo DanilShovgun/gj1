@@ -1,46 +1,41 @@
 from rest_framework import serializers
-from .models import Product, ProductPosition, Stock
-
+from .models import Product, Stock, StockProduct
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ('id', 'name', 'description')
+        fields = ('id', 'title', 'description')
 
-
-class ProductPositionSerializer(serializers.ModelSerializer):
+class StockProductSerializer(serializers.ModelSerializer):
     product = ProductSerializer()
 
     class Meta:
-        model = ProductPosition
-        fields = ('id', 'product', 'storage_cost')
-
+        model = StockProduct
+        fields = ('id', 'product', 'price', 'quantity')
 
 class StockSerializer(serializers.ModelSerializer):
-    positions = ProductPositionSerializer(many=True)
+    positions = StockProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = Stock
-        fields = ('id', 'name', 'positions')
+        fields = ('id', 'address', 'positions')
 
     def create(self, validated_data):
-        positions_data = validated_data.pop('positions')
+        positions_data = validated_data.pop('positions', [])
         stock = Stock.objects.create(**validated_data)
         for position_data in positions_data:
-            ProductPosition.objects.create(stock=stock, **position_data)
+            StockProduct.objects.create(stock=stock, **position_data)
         return stock
 
     def update(self, instance, validated_data):
-        positions_data = validated_data.pop('positions')
-        positions = (instance.positions).all()
-        positions = list(positions)
-        
-        instance.name = validated_data.get('name', instance.name)
+        positions_data = validated_data.pop('positions', [])
+        instance.address = validated_data.get('address', instance.address)
         instance.save()
 
         for position_data in positions_data:
-            position = positions.pop(0)
-            position.storage_cost = position_data.get('storage_cost', position.storage_cost)
+            position = StockProduct.objects.get(id=position_data['id'])
+            position.price = position_data.get('price', position.price)
+            position.quantity = position_data.get('quantity', position.quantity)
             position.save()
-        return instance
 
+        return instance
